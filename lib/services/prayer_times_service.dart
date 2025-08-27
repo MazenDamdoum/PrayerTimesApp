@@ -59,18 +59,21 @@ class PrayerTimesService {
 
   // Helper method to find prayer times for a specific date in your JSON structure
   static List<Map<String, dynamic>>? _findPrayerTimesForDate(Map<String, dynamic> data, String dateKey) {
-    // This depends on your prayer_times.json structure
-    // Adjust this based on how your JSON is organized
+    // Extract prayer times from nested JSON structure with 'adhan' times
     
     if (data.containsKey(dateKey)) {
       final dayData = data[dateKey];
-      return [
-        {'prayer': 'Fajr', 'time': dayData['fajr'] ?? '05:30'},
-        {'prayer': 'Dhuhr', 'time': dayData['dhuhr'] ?? '12:15'},
-        {'prayer': 'Asr', 'time': dayData['asr'] ?? '15:45'},
-        {'prayer': 'Maghrib', 'time': dayData['maghrib'] ?? '18:20'},
-        {'prayer': 'Isha', 'time': dayData['isha'] ?? '19:45'},
-      ];
+      final times = dayData['times'];
+      
+      if (times != null) {
+        return [
+          {'prayer': 'Fajr', 'time': times['fajr']['adhan'] ?? '05:30'},
+          {'prayer': 'Dhuhr', 'time': times['dhuhr']['adhan'] ?? '12:15'},
+          {'prayer': 'Asr', 'time': times['asr']['adhan'] ?? '15:45'},
+          {'prayer': 'Maghrib', 'time': times['maghrib']['adhan'] ?? '18:20'},
+          {'prayer': 'Isha', 'time': times['isha']['adhan'] ?? '19:45'},
+        ];
+      }
     }
     
     return null;
