@@ -1,0 +1,18 @@
+{
+  "surahs": [
+    {
+      "id": 1,
+      "name_simple": "Al-Fatiha",
+      "name_arabic": "الفاتحة",
+      "verses_count": 7,
+      "revelation_place": "makkah"
+    },
+    {
+      "id": 2,
+      "name_simple": "Al-Baqarah",
+      "name_arabic": "البقرة", 
+      "verses_count": 286,
+      "revelation_place": "madinah"
+    }
+  ]
+}

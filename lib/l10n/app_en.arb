@@ -1,0 +1,45 @@
+{
+  "@@locale": "en",
+  "settings": "Settings",
+  "appSettings": "App Settings",
+  "theme": "Theme",
+  "lightMode": "Light mode",
+  "darkMode": "Dark mode",
+  "language": "Language",
+  "prayerSettings": "Prayer Settings",
+  "prayerNotifications": "Prayer Notifications",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "officialTimetable": "Official 2025 Timetable",
+  "viewPDF": "View Windsor Islamic Association PDF",
+  "about": "About",
+  "aboutWIA": "About WIA App",
+  "version": "Version 1.0.0",
+  "sendFeedback": "Send Feedback",
+  "helpImprove": "Help us improve",
+  "supportDevelopment": "Support Development",
+  "donated": "donated",
+  "yearsRemaining": "{years} years covered",
+  "@yearsRemaining": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "helpKeepRunning": "Help keep this app running",
+  "iosDevelopment": "iOS Development: ${cost}/year",
+  "serverCosts": "Server Costs: ${cost}/year",
+  "selectLanguage": "Select Language",
+  "confirmLanguageChange": "Change language to {language}?",
+  "@confirmLanguageChange": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "yes": "Yes",
+  "cancel": "Cancel",
+  "prayerTimes": "Prayer Times"
+}

@@ -1,0 +1,35 @@
+name: wia_app_clean
+description: "Windsor Islamic Association Prayer Times - Accurate prayer times and Qibla compass for the Windsor Muslim community."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.1.0
+  shared_preferences: ^2.2.2
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  hijri: ^3.0.0
+  sensors_plus: ^4.0.2
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+  url_launcher: ^6.1.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  
+  assets:
+    - assets/prayer_times.json
+    - assets/icons/
