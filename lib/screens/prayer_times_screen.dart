@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
+import '../services/notification_service.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -128,6 +129,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         } else {
           // When countdown reaches zero, recalculate for the next prayer
           _calculateTimeUntilNextPrayer();
+          
+          // If this was the last prayer of the day (Isha), schedule notifications for tomorrow
+          if (_nextPrayerName == 'Fajr (next day)') {
+            _scheduleNextDayNotifications();
+          }
         }
       });
     }
@@ -197,6 +203,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     }
     
     return DateTime(selectedDate.year, selectedDate.month, selectedDate.day, hour, minute);
+  }
+
+  // Helper method to schedule notifications for the next day
+  void _scheduleNextDayNotifications() async {
+    try {
+      await NotificationService.scheduleNextDayNotifications();
+      print('Next day notifications scheduled from PrayerTimesScreen');
+    } catch (e) {
+      print('Error scheduling next day notifications: $e');
+    }
   }
 
   // Convert 12-hour format time to 24-hour format

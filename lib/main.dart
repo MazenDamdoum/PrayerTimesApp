@@ -9,6 +9,27 @@ void main() async {
   // Initialize notification service
   await NotificationService.initialize();
   
+  // Request notification permissions
+  await NotificationService.requestPermissions();
+  
+  // Automatically schedule prayer notifications on app startup
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    final preAdhanEnabled = prefs.getBool('pre_adhan_enabled') ?? false;
+    
+    if (notificationsEnabled) {
+      await NotificationService.scheduleAllPrayerNotifications(preAdhanEnabled);
+      print('Prayer notifications scheduled automatically on app startup');
+      
+      // Debug: print scheduled notifications in debug mode
+      await NotificationService.printScheduledNotifications();
+    }
+  } catch (e) {
+    print('Error scheduling notifications on startup: $e');
+    // Don't prevent app from starting due to notification issues
+  }
+  
   runApp(MyApp());
 }
 

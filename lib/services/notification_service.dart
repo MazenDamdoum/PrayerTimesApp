@@ -54,8 +54,25 @@ class NotificationService {
     if (!notificationsEnabled) return;
 
     try {
-      // Get today's actual prayer times from your JSON data
-      final prayerTimes = await PrayerTimesService.getTodaysPrayerTimes();
+      // Schedule notifications for today
+      await _scheduleNotificationsForDate(DateTime.now(), preAdhanEnabled);
+      
+      // Schedule notifications for tomorrow to ensure continuity
+      final tomorrow = DateTime.now().add(Duration(days: 1));
+      await _scheduleNotificationsForDate(tomorrow, preAdhanEnabled, startIdFrom: 100);
+      
+    } catch (e) {
+      print('Error loading prayer times for notifications: $e');
+      // Fallback to default times if loading fails
+      await _scheduleDefaultNotifications(preAdhanEnabled);
+    }
+  }
+
+  // Helper method to schedule notifications for a specific date
+  static Future<void> _scheduleNotificationsForDate(DateTime date, bool preAdhanEnabled, {int startIdFrom = 0}) async {
+    try {
+      // Get prayer times for the specified date
+      final prayerTimes = await PrayerTimesService.getPrayerTimesForDate(date);
       
       for (int i = 0; i < prayerTimes.length; i++) {
         final prayer = prayerTimes[i];
@@ -63,28 +80,31 @@ class NotificationService {
         final timeStr = prayer['time'] as String;
         
         try {
-          final scheduledTime = _parseTimeToToday(timeStr);
+          final scheduledTime = _parseTimeToDateTime(timeStr, date);
           
-          // Schedule main prayer notification
-          await _scheduleNotification(
-            id: i * 2, // Even IDs for main prayers
-            title: '$prayerName Prayer Time',
-            body: 'It\'s time for $prayerName prayer',
-            scheduledTime: scheduledTime,
-            sound: 'athan_sound',
-          );
+          // Only schedule if the time is in the future
+          if (scheduledTime.isAfter(DateTime.now())) {
+            // Schedule main prayer notification
+            await _scheduleNotification(
+              id: startIdFrom + i * 2, // Even IDs for main prayers
+              title: '$prayerName Prayer Time',
+              body: 'It\'s time for $prayerName prayer',
+              scheduledTime: scheduledTime,
+              sound: 'athan_sound',
+            );
 
-          // Schedule 15-minute pre-Adhan notification if enabled
-          if (preAdhanEnabled) {
-            final preAdhanTime = scheduledTime.subtract(Duration(minutes: 15));
-            if (preAdhanTime.isAfter(DateTime.now())) {
-              await _scheduleNotification(
-                id: i * 2 + 1, // Odd IDs for pre-Adhan alerts
-                title: '$prayerName in 15 Minutes',
-                body: 'Get ready for $prayerName prayer',
-                scheduledTime: preAdhanTime,
-                sound: 'notification_sound',
-              );
+            // Schedule 15-minute pre-Adhan notification if enabled
+            if (preAdhanEnabled) {
+              final preAdhanTime = scheduledTime.subtract(Duration(minutes: 15));
+              if (preAdhanTime.isAfter(DateTime.now())) {
+                await _scheduleNotification(
+                  id: startIdFrom + i * 2 + 1, // Odd IDs for pre-Adhan alerts
+                  title: '$prayerName in 15 Minutes',
+                  body: 'Get ready for $prayerName prayer',
+                  scheduledTime: preAdhanTime,
+                  sound: 'notification_sound',
+                );
+              }
             }
           }
         } catch (e) {
@@ -92,10 +112,29 @@ class NotificationService {
         }
       }
     } catch (e) {
-      print('Error loading prayer times for notifications: $e');
-      // Fallback to default times if loading fails
-      await _scheduleDefaultNotifications(preAdhanEnabled);
+      print('Error loading prayer times for date ${date.toString()}: $e');
     }
+  }
+
+  // Helper method to parse time string to a specific date
+  static DateTime _parseTimeToDateTime(String timeStr, DateTime date) {
+    // Parse time string like "5:21 AM" or "1:33 PM"
+    final parts = timeStr.split(' ');
+    final timeParts = parts[0].split(':');
+    
+    int hour = int.parse(timeParts[0]);
+    int minute = int.parse(timeParts[1]);
+    
+    // Convert to 24-hour format
+    if (parts.length > 1) {
+      if (parts[1].toUpperCase() == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) {
+        hour = 0;
+      }
+    }
+    
+    return DateTime(date.year, date.month, date.day, hour, minute);
   }
 
   // Fallback method with default times if data loading fails
@@ -144,9 +183,22 @@ class NotificationService {
 
   static DateTime _parseTimeToToday(String timeStr) {
     final now = DateTime.now();
-    final parts = timeStr.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
+    
+    // Parse time string like "5:21 AM" or "1:33 PM"
+    final parts = timeStr.split(' ');
+    final timeParts = parts[0].split(':');
+    
+    int hour = int.parse(timeParts[0]);
+    int minute = int.parse(timeParts[1]);
+    
+    // Convert to 24-hour format
+    if (parts.length > 1) {
+      if (parts[1].toUpperCase() == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) {
+        hour = 0;
+      }
+    }
     
     var scheduledTime = DateTime(now.year, now.month, now.day, hour, minute);
     
@@ -233,5 +285,49 @@ class NotificationService {
 
   static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
     return await _notifications.pendingNotificationRequests();
+  }
+
+  // Method to reschedule notifications for the next day
+  static Future<void> scheduleNextDayNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final preAdhanEnabled = prefs.getBool('pre_adhan_enabled') ?? false;
+    
+    // Schedule notifications for tomorrow (starting from ID 200 to avoid conflicts)
+    final tomorrow = DateTime.now().add(Duration(days: 1));
+    await _scheduleNotificationsForDate(tomorrow, preAdhanEnabled, startIdFrom: 200);
+    
+    print('Scheduled notifications for next day: ${tomorrow.toString().split(' ')[0]}');
+  }
+
+  // Debug method to check scheduled notifications
+  static Future<void> printScheduledNotifications() async {
+    final pending = await getPendingNotifications();
+    print('Currently scheduled notifications: ${pending.length}');
+    
+    for (final notification in pending) {
+      print('ID: ${notification.id}, Title: ${notification.title}, Body: ${notification.body}');
+    }
+    
+    if (pending.isEmpty) {
+      print('No notifications are currently scheduled. Check if:');
+      print('1. Notifications are enabled in settings');
+      print('2. Prayer times are being loaded correctly');
+      print('3. App has notification permissions');
+    }
+  }
+
+  // Method to refresh notifications (useful when settings change)
+  static Future<void> refreshNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    final preAdhanEnabled = prefs.getBool('pre_adhan_enabled') ?? false;
+    
+    if (notificationsEnabled) {
+      await scheduleAllPrayerNotifications(preAdhanEnabled);
+      print('Notifications refreshed successfully');
+    } else {
+      await cancelAllNotifications();
+      print('All notifications cancelled - notifications disabled');
+    }
   }
 }
