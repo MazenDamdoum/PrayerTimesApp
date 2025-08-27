@@ -298,4 +298,36 @@ class NotificationService {
     
     print('Scheduled notifications for next day: ${tomorrow.toString().split(' ')[0]}');
   }
+
+  // Debug method to check scheduled notifications
+  static Future<void> printScheduledNotifications() async {
+    final pending = await getPendingNotifications();
+    print('Currently scheduled notifications: ${pending.length}');
+    
+    for (final notification in pending) {
+      print('ID: ${notification.id}, Title: ${notification.title}, Body: ${notification.body}');
+    }
+    
+    if (pending.isEmpty) {
+      print('No notifications are currently scheduled. Check if:');
+      print('1. Notifications are enabled in settings');
+      print('2. Prayer times are being loaded correctly');
+      print('3. App has notification permissions');
+    }
+  }
+
+  // Method to refresh notifications (useful when settings change)
+  static Future<void> refreshNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    final preAdhanEnabled = prefs.getBool('pre_adhan_enabled') ?? false;
+    
+    if (notificationsEnabled) {
+      await scheduleAllPrayerNotifications(preAdhanEnabled);
+      print('Notifications refreshed successfully');
+    } else {
+      await cancelAllNotifications();
+      print('All notifications cancelled - notifications disabled');
+    }
+  }
 }

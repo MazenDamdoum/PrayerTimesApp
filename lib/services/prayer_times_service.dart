@@ -125,11 +125,32 @@ class PrayerTimesService {
   // Helper to parse time string to today's DateTime
   static DateTime _parseTimeToToday(String timeStr) {
     final now = DateTime.now();
-    final parts = timeStr.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
     
-    return DateTime(now.year, now.month, now.day, hour, minute);
+    // Handle both "HH:MM" and "H:MM AM/PM" formats
+    if (timeStr.contains(' ')) {
+      // Parse time string like "5:21 AM" or "1:33 PM"
+      final parts = timeStr.split(' ');
+      final timeParts = parts[0].split(':');
+      
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1]);
+      
+      // Convert to 24-hour format
+      if (parts[1].toUpperCase() == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) {
+        hour = 0;
+      }
+      
+      return DateTime(now.year, now.month, now.day, hour, minute);
+    } else {
+      // Handle legacy "HH:MM" format
+      final parts = timeStr.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      
+      return DateTime(now.year, now.month, now.day, hour, minute);
+    }
   }
 
   // Clear cache (useful when date changes)

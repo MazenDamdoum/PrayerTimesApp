@@ -21,9 +21,13 @@ void main() async {
     if (notificationsEnabled) {
       await NotificationService.scheduleAllPrayerNotifications(preAdhanEnabled);
       print('Prayer notifications scheduled automatically on app startup');
+      
+      // Debug: print scheduled notifications in debug mode
+      await NotificationService.printScheduledNotifications();
     }
   } catch (e) {
     print('Error scheduling notifications on startup: $e');
+    // Don't prevent app from starting due to notification issues
   }
   
   runApp(MyApp());
